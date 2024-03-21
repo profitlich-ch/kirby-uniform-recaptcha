@@ -18,6 +18,13 @@ class RecaptchaGuard extends Guard
     const FieldName = 'g-recaptcha-response';
 
     /**
+     * reCAPTCHA action name used
+     * 
+     * @var string
+     */
+    const ActionName = 'UniformAction';
+
+    /**
      * URL for the reCAPTCHA verification
      *
      * @var string
@@ -44,11 +51,11 @@ class RecaptchaGuard extends Guard
             throw new Exception('The reCAPTCHA secret key for Uniform is not configured');
         }
 
+        $acceptableScore = option('expl0it3r.uniform-recaptcha.acceptableScore');
         $requestUrl = self::VerificationUrl.'?secret='.$secretKey.'&response='.$recaptchaChallenge;
-
         $response = json_decode(file_get_contents($requestUrl), true);
 
-        if (empty($response) || $response['success'] !== true) {
+        if (empty($response) || $response['success'] !== true || $response['score'] < $acceptableScore || $response['action'] !== self::ActionName) {
             $this->reject(t('uniform-recaptcha-invalid'), self::FieldName);
         }
 
